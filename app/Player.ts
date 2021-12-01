@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import {Keyboard} from "./Keyboard";
+import {Keyboard, Keys} from "./Keyboard";
 import Utils, {Vector} from "./utils";
 
 export class Player extends PIXI.Graphics {
@@ -21,12 +21,12 @@ export class Player extends PIXI.Graphics {
   }
 
   update = (delta: number): void => {
-    if (this.keyboard.down) {
+    if (this.keyboard.isKeyDown(Keys.ArrowDown)) {
       this.speed.y = Math.min(this.speed.y + this.acceleration, this.speedYMax);
-    } else if (!this.keyboard.down && this.speed.y > 0) {
+    } else if (!this.keyboard.isKeyDown(Keys.ArrowDown) && this.speed.y > 0) {
       this.speed.y = Math.max(this.speed.y - this.acceleration, 0)
     } else {
-      this.speed.y = this.keyboard.up ?
+      this.speed.y = this.keyboard.isKeyDown(Keys.ArrowUp) ?
         Math.max(this.speed.y - this.acceleration, -this.speedYMax) :
         Math.min(this.speed.y + this.acceleration, 0);
     }
