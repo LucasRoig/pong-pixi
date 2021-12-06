@@ -1,41 +1,91 @@
-import * as PIXI from "pixi.js"
-import {Keyboard, Keys} from "./Keyboard";
-import Utils, {Vector} from "./utils";
+import * as PIXI from "pixi.js";
+import { Ball } from "./Ball";
+import { Keyboard, Keys } from "./Keyboard";
+import Utils, { Vector } from "./utils";
 
 export class Player extends PIXI.Graphics {
-  speed: Vector = {x: 0, y: 0};
+  speed: Vector = { x: 0, y: 0 };
   speedYMax = 3;
   acceleration = 0.5;
+  playerController: IPlayerController;
 
-  keyboard: Keyboard
-  screen: PIXI.Rectangle
+  keyboard: Keyboard;
+  screen: PIXI.Rectangle;
 
-  constructor(k: Keyboard, screen: PIXI.Rectangle) {
+  constructor(
+    k: Keyboard,
+    screen: PIXI.Rectangle,
+    position: Vector,
+    color: number,
+    playerController: IPlayerController
+  ) {
     super();
-    this.keyboard = k
-    this.beginFill(0xffffff);
+    this.keyboard = k;
+    this.beginFill(color);
     this.drawRect(0, 0, 10, 100);
-    this.setTransform(50, 50)
-    this.screen = screen
-    console.log(screen)
+    this.setTransform(position.x, position.y);
+    this.screen = screen;
+    this.playerController = playerController;
+    console.log(screen);
   }
 
   update = (delta: number): void => {
-    if (this.keyboard.isKeyDown(Keys.ArrowDown)) {
-      this.speed.y = Math.min(this.speed.y + this.acceleration, this.speedYMax);
-    } else if (!this.keyboard.isKeyDown(Keys.ArrowDown) && this.speed.y > 0) {
-      this.speed.y = Math.max(this.speed.y - this.acceleration, 0)
+    this.playerController.update(delta, this);
+  };
+}
+
+export class KeyboardPlayerController implements IPlayerController {
+  keyUp: Keys;
+  keyDown: Keys;
+
+  constructor(keyUp: Keys, keyDown: Keys) {
+    this.keyDown = keyDown;
+    this.keyUp = keyUp;
+  }
+
+  update = (delta: number, player: Player): void => {
+    if (player.keyboard.isKeyDown(this.keyDown)) {
+      player.speed.y = Math.min(
+        player.speed.y + player.acceleration,
+        player.speedYMax
+      );
+    } else if (
+      !player.keyboard.isKeyDown(this.keyDown) &&
+      player.speed.y > 0
+    ) {
+      player.speed.y = Math.max(player.speed.y - player.acceleration, 0);
     } else {
-      this.speed.y = this.keyboard.isKeyDown(Keys.ArrowUp) ?
-        Math.max(this.speed.y - this.acceleration, -this.speedYMax) :
-        Math.min(this.speed.y + this.acceleration, 0);
+      player.speed.y = player.keyboard.isKeyDown(this.keyUp)
+        ? Math.max(player.speed.y - player.acceleration, -player.speedYMax)
+        : Math.min(player.speed.y + player.acceleration, 0);
     }
 
-    if (this.transform.position) {
-      const newX = this.transform.position.x + (this.speed.x * delta)
-      let newY = this.transform.position.y + (this.speed.y * delta)
-      newY = Utils.clamp(0, this.screen.height - this.height, newY)
-      this.setTransform(newX, newY)
+    if (player.transform.position) {
+      const newX = player.transform.position.x + player.speed.x * delta;
+      let newY = player.transform.position.y + player.speed.y * delta;
+      newY = Utils.clamp(0, player.screen.height - player.height, newY);
+      player.setTransform(newX, newY);
     }
+  };
+}
+
+export class AIController implements IPlayerController {
+
+  ball: Ball;
+
+  constructor(ball: Ball) {
+    this.ball = ball;
   }
+
+  update = (delta: number, player: Player): void => {
+    player.setTransform(player.x, this.ball.y) 
+
+  }
+
+}
+
+export interface IPlayerController {
+
+  update : (delta: number, player: Player)=> void 
+
 }

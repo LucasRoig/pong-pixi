@@ -4,7 +4,9 @@ type KeyboardModel = {
 
 export enum Keys {
   ArrowDown = "ArrowDown",
-  ArrowUp = "ArrowUp"
+  ArrowUp = "ArrowUp",
+  z = "z",
+  s = "s"
 }
 
 export class Keyboard {
